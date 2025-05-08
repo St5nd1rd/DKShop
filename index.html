@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Dinero</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(
+        45deg,
+        #000,
+        #000 10px,
+        #fff 10px,
+        #fff 20px
+      );
+      opacity: 0.05;
+      animation: moverFondo 20s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes moverFondo {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-50%, -50%); }
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .registro {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 1;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #historial {
+      margin-top: 20px;
+    }
+
+    .entrada { color: green; }
+    .salida { color: red; }
+
+    .boton-limpiar {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .boton-limpiar:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Registro de Dinero</h1>
+  <div class="registro">
+    <label>Monto:</label>
+    <input type="number" id="monto" placeholder="Ej: 500">
+
+    <label>Tipo:</label>
+    <select id="tipo">
+      <option value="entrada">Entrada</option>
+      <option value="salida">Salida</option>
+    </select>
+
+    <label>Descripción:</label>
+    <input type="text" id="descripcion" placeholder="Ej: Compra de materiales">
+
+    <button onclick="registrar()">Registrar</button>
+    <button class="boton-limpiar" onclick="limpiar()">Limpiar Todo</button>
+
+    <h3>Balance: RD$ <span id="balance">0.00</span></h3>
+
+    <div id="historial">
+      <h4>Historial</h4>
+      <ul id="lista"></ul>
+    </div>
+  </div>
+
+  <script>
+    let balance = 0;
+    const balanceDisplay = document.getElementById("balance");
+    const lista = document.getElementById("lista");
+
+    // Cargar datos guardados al abrir la página
+    window.onload = function () {
+      const datos = JSON.parse(localStorage.getItem("registroDinero"));
+      if (datos) {
+        balance = datos.balance;
+        balanceDisplay.textContent = balance.toFixed(2);
+        datos.historial.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = item.texto;
+          li.className = item.tipo;
+          lista.appendChild(li);
+        });
+      }
+    };
+
+    function registrar() {
+      const monto = parseFloat(document.getElementById("monto").value);
+      const tipo = document.getElementById("tipo").value;
+      const desc = document.getElementById("descripcion").value;
+
+      if (isNaN(monto) || monto <= 0 || desc === "") {
+        alert("Por favor completa los campos correctamente.");
+        return;
+      }
+
+      const texto = `${tipo === "entrada" ? "+" : "-"}RD$${monto.toFixed(2)} - ${desc}`;
+      const li = document.createElement("li");
+      li.textContent = texto;
+      li.className = tipo;
+      lista.appendChild(li);
+
+      balance += tipo === "entrada" ? monto : -monto;
+      balanceDisplay.textContent = balance.toFixed(2);
+
+      guardarDatos();
+
+      document.getElementById("monto").value = "";
+      document.getElementById("descripcion").value = "";
+    }
+
+    function guardarDatos() {
+      const items = Array.from(lista.children).map(item => ({
+        texto: item.textContent,
+        tipo: item.className
+      }));
+      localStorage.setItem("registroDinero", JSON.stringify({
+        balance,
+        historial: items
+      }));
+    }
+
+    function limpiar() {
+      if (confirm("¿Estás seguro de que deseas borrar todos los registros?")) {
+        balance = 0;
+        balanceDisplay.textContent = "0.00";
+        lista.innerHTML = "";
+        localStorage.removeItem("registroDinero");
+      }
+    }
+  </script>
+</body>
+</html>
