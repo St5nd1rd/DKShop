@@ -1,173 +1,262 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Administrador de Dinero</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Registro de Dinero</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f4;
-      position: relative;
-      overflow: hidden;
+      background: url('https://i.postimg.cc/HsRDkRkw/2d9869a56e08cba96fe01f969e85298a.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      overflow-x: hidden;
     }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 200%;
-      height: 200%;
-      background: repeating-linear-gradient(
-        45deg,
-        #000,
-        #000 10px,
-        #fff 10px,
-        #fff 20px
-      );
-      opacity: 0.05;
-      animation: moverFondo 20s linear infinite;
+    .overlay {
+      background: rgba(0, 0, 0, 0.7);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: -1;
     }
-
-    @keyframes moverFondo {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(-50%, -50%); }
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    .registro {
-      max-width: 400px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .container {
       position: relative;
       z-index: 1;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.85);
+      border-radius: 10px;
     }
-
-    input, select, button {
+    h1, h2 {
+      text-align: center;
+    }
+    .form input, .form select, .form button {
       width: 100%;
       padding: 10px;
-      margin: 8px 0;
+      margin: 10px 0;
       border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    #historial {
-      margin-top: 20px;
-    }
-
-    .entrada { color: green; }
-    .salida { color: red; }
-
-    .boton-limpiar {
-      background-color: #e74c3c;
-      color: white;
       border: none;
-      cursor: pointer;
+      font-size: 1em;
     }
-
-    .boton-limpiar:hover {
-      background-color: #c0392b;
+    .form button {
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .form button:hover {
+      background: #45a049;
+    }
+    .clear-btn {
+      background: #f44336;
+    }
+    .clear-btn:hover {
+      background: #e53935;
+    }
+    .history ul {
+      list-style: none;
+      padding: 0;
+    }
+    .history li {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .entrada {
+      color: #4CAF50;
+    }
+    .salida {
+      color: #f44336;
+    }
+    .balance-box {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 1em;
+      z-index: 2;
+      text-align: center;
+      min-width: 120px;
+    }
+    .search-box {
+      margin-top: 10px;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      font-size: 1em;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 300px;
+    }
+    .modal-content p {
+      margin-bottom: 20px;
+    }
+    .modal-content button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Registro de Dinero</h1>
-  <div class="registro">
-    <label>Monto:</label>
-    <input type="number" id="monto" placeholder="Ej: 500">
+  <div class="overlay"></div>
+  <div class="balance-box" id="balanceBox">Saldo: $0</div>
 
-    <label>Tipo:</label>
-    <select id="tipo">
-      <option value="entrada">Recibi</option>
-      <option value="salida">Gaste</option>
-    </select>
+  <div class="container">
+    <h1>Registro de Dinero</h1>
+    <div class="form">
+      <input type="number" id="amount" placeholder="Cantidad ($)" step="0.01" required />
+      <input type="text" id="reason" placeholder="Razón (ej. Compra, Sueldo)" required />
+      <select id="type">
+        <option value="entrada">Entrada</option>
+        <option value="salida">Salida</option>
+      </select>
+      <button onclick="addTransaction()">Registrar</button>
+      <button class="clear-btn" onclick="showClearModal()">Borrar Historial</button>
+    </div>
 
-    <label>¿Quien/En que?:</label>
-    <input type="text" id="descripcion" placeholder="Ej: Compra de materiales">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Buscar en historial..." oninput="filterHistory()" />
+    </div>
 
-    <button onclick="registrar()">Registrar</button>
-    <button class="boton-limpiar" onclick="limpiar()">Limpiar Todo</button>
+    <div class="history">
+      <h2>Historial</h2>
+      <ul id="historyList"></ul>
+    </div>
+  </div>
 
-    <h3>Balance: RD$ <span id="balance">0.00</span></h3>
-
-    <div id="historial">
-      <h4>Historial</h4>
-      <ul id="lista"></ul>
+  <!-- Modal -->
+  <div class="modal" id="modalConfirm">
+    <div class="modal-content">
+      <p>¿Estás seguro de que deseas borrar el historial?</p>
+      <button onclick="clearHistory()">Sí, borrar</button>
+      <button onclick="closeModal()">Cancelar</button>
     </div>
   </div>
 
   <script>
+    let transactions = getCookie('transactions') ? JSON.parse(getCookie('transactions')) : [];
     let balance = 0;
-    const balanceDisplay = document.getElementById("balance");
-    const lista = document.getElementById("lista");
 
-    // Cargar datos guardados al abrir la página
-    window.onload = function () {
-      const datos = JSON.parse(localStorage.getItem("registroDinero"));
-      if (datos) {
-        balance = datos.balance;
-        balanceDisplay.textContent = balance.toFixed(2);
-        datos.historial.forEach(item => {
-          const li = document.createElement("li");
-          li.textContent = item.texto;
-          li.className = item.tipo;
-          lista.appendChild(li);
-        });
-      }
-    };
+    function addTransaction() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const reason = document.getElementById('reason').value.trim();
+      const type = document.getElementById('type').value;
 
-    function registrar() {
-      const monto = parseFloat(document.getElementById("monto").value);
-      const tipo = document.getElementById("tipo").value;
-      const desc = document.getElementById("descripcion").value;
-
-      if (isNaN(monto) || monto <= 0 || desc === "") {
-        alert("Por favor completa los campos correctamente.");
+      if (!amount || amount <= 0 || !reason) {
+        showModal("Por favor, introduce una cantidad válida y una razón.");
         return;
       }
 
-      const texto = `${tipo === "entrada" ? "+" : "-"}RD$${monto.toFixed(2)} - ${desc}`;
-      const li = document.createElement("li");
-      li.textContent = texto;
-      li.className = tipo;
-      lista.appendChild(li);
+      const transaction = {
+        amount,
+        reason,
+        type,
+        date: new Date().toLocaleString()
+      };
+      transactions.push(transaction);
+      setCookie('transactions', JSON.stringify(transactions), 30);
 
-      balance += tipo === "entrada" ? monto : -monto;
-      balanceDisplay.textContent = balance.toFixed(2);
-
-      guardarDatos();
-
-      document.getElementById("monto").value = "";
-      document.getElementById("descripcion").value = "";
+      updateHistory();
+      updateBalance();
+      document.getElementById('amount').value = '';
+      document.getElementById('reason').value = '';
     }
 
-    function guardarDatos() {
-      const items = Array.from(lista.children).map(item => ({
-        texto: item.textContent,
-        tipo: item.className
-      }));
-      localStorage.setItem("registroDinero", JSON.stringify({
-        balance,
-        historial: items
-      }));
+    function updateHistory() {
+      const historyList = document.getElementById('historyList');
+      historyList.innerHTML = '';
+      transactions.forEach(t => {
+        const li = document.createElement('li');
+        li.textContent = `${t.date} - ${t.type === 'entrada' ? '+' : '-'}$${t.amount.toFixed(2)} - ${t.reason}`;
+        li.classList.add(t.type);
+        historyList.appendChild(li);
+      });
     }
 
-    function limpiar() {
-      if (confirm("¿Estás seguro de que deseas borrar todos los registros?")) {
-        balance = 0;
-        balanceDisplay.textContent = "0.00";
-        lista.innerHTML = "";
-        localStorage.removeItem("registroDinero");
+    function filterHistory() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const items = document.querySelectorAll('#historyList li');
+      items.forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(query) ? '' : 'none';
+      });
+    }
+
+    function updateBalance() {
+      balance = transactions.reduce((acc, t) => t.type === 'entrada' ? acc + t.amount : acc - t.amount, 0);
+      document.getElementById('balanceBox').textContent = `Saldo: $${balance.toFixed(2)}`;
+    }
+
+    function showClearModal() {
+      document.getElementById('modalConfirm').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modalConfirm').style.display = 'none';
+    }
+
+    function clearHistory() {
+      transactions = [];
+      setCookie('transactions', '', -1);
+      updateHistory();
+      updateBalance();
+      closeModal();
+    }
+
+    function showModal(message) {
+      alert(message); // Puedes reemplazar esto con otra ventana personalizada si quieres.
+    }
+
+    // Cookies
+    function setCookie(name, value, days) {
+      let expires = '';
+      if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = `; expires=${date.toUTCString()}`;
       }
+      document.cookie = `${name}=${value || ''}${expires}; path=/`;
     }
+
+    function getCookie(name) {
+      const nameEQ = `${name}=`;
+      const ca = document.cookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+      }
+      return null;
+    }
+
+    updateHistory();
+    updateBalance();
   </script>
 </body>
 </html>
